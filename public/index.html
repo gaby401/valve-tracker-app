@@ -1,0 +1,63 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Valve Tracker</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    input, select, button { margin: 5px; padding: 5px; }
+    table { margin-top: 20px; border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+  </style>
+</head>
+<body>
+  <h2>Valve Tracker</h2>
+  <input id="sn" placeholder="Serial Number" />
+  <input id="department" placeholder="Department" />
+  <input id="station" placeholder="Station (EVA, AWT...)" />
+  <select id="size">
+    <option value="As-Is">As-Is</option>
+    <option value="Nominal">Nominal</option>
+    <option value="Low End">Low End</option>
+    <option value="High End">High End</option>
+    <option value="Over">Over</option>
+  </select>
+  <select id="status">
+    <option value="In Progress">In Progress</option>
+    <option value="Completed">Completed</option>
+  </select>
+  <button onclick="addValve()">Add Valve</button>
+  <table id="valvesTable"></table>
+
+  <script>
+    async function loadValves() {
+      const res = await fetch('/valves');
+      const valves = await res.json();
+      const table = document.getElementById('valvesTable');
+      table.innerHTML = '<tr><th>SN</th><th>Dept</th><th>Station</th><th>Size</th><th>Status</th></tr>';
+      valves.forEach(v => {
+        table.innerHTML += `<tr><td>${v.sn}</td><td>${v.department}</td><td>${v.station}</td><td>${v.size}</td><td>${v.status}</td></tr>`;
+      });
+    }
+
+    async function addValve() {
+      const valve = {
+        sn: document.getElementById('sn').value,
+        department: document.getElementById('department').value,
+        station: document.getElementById('station').value,
+        size: document.getElementById('size').value,
+        status: document.getElementById('status').value,
+      };
+      await fetch('/valves', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(valve)
+      });
+      loadValves();
+    }
+
+    window.onload = loadValves;
+  </script>
+</body>
+</html>
