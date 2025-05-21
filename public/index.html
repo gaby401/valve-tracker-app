@@ -18,53 +18,69 @@
   <img src="https://www.edwards.com/SiteCollectionImages/logos/Edwards_Logo_RGB_Gray.png" class="logo" alt="Edwards Lifesciences Logo" />
   <h2>Valve Tracker System</h2>
 
-  <input id="sn" placeholder="Serial Number" />
-  <input id="department" placeholder="Department" />
-  <select id="station">
-    <option value="">Select Station</option>
-    <option value="EVA">EVA</option>
-    <option value="Steady Flow">Steady Flow</option>
-    <option value="AWT">AWT</option>
-    <option value="Fatigue">Fatigue</option>
-    <option value="Visual Inspection">Visual Inspection</option>
-  </select>
-  <select id="size">
-    <option value="As-Is">As-Is</option>
-    <option value="Nominal">Nominal</option>
-    <option value="Low End">Low End</option>
-    <option value="High End">High End</option>
-    <option value="Over">Over</option>
-  </select>
-  <select id="status">
-    <option value="In Progress">In Progress</option>
-    <option value="Completed">Completed</option>
-  </select>
-  <textarea id="notes" rows="3" placeholder="Notes (optional)"></textarea>
+  <div class="form-group"><input id="sn" placeholder="Serial Number" /></div>
+  <div class="form-group"><input id="department" placeholder="Department" /></div>
+  <div class="form-group">
+    <select id="station">
+      <option value="">Select Station</option>
+      <option value="EVA">EVA</option>
+      <option value="Steady Flow">Steady Flow</option>
+      <option value="AWT">AWT</option>
+      <option value="Fatigue">Fatigue</option>
+      <option value="Visual Inspection">Visual Inspection</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <select id="size">
+      <option value="As-Is">As-Is</option>
+      <option value="Nominal">Nominal</option>
+      <option value="Low End">Low End</option>
+      <option value="High End">High End</option>
+      <option value="Over">Over</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <select id="status">
+      <option value="In Progress">In Progress</option>
+      <option value="Completed">Completed</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <textarea id="notes" rows="3" placeholder="Notes (optional)"></textarea>
+  </div>
   <button onclick="addValve()">Add/Update Valve</button>
 
-  <table id="valvesTable"></table>
+  <table id="valvesTable">
+    <tr><th>SN</th><th>Dept</th><th>Station</th><th>Size</th><th>Status</th><th>Notes</th><th>Actions</th></tr>
+  </table>
 
   <script>
     let editSN = null;
 
     async function loadValves() {
-      const res = await fetch('/valves');
-      const valves = await res.json();
-      const table = document.getElementById('valvesTable');
-      table.innerHTML = '<tr><th>SN</th><th>Dept</th><th>Station</th><th>Size</th><th>Status</th><th>Notes</th><th>Actions</th></tr>';
-      valves.forEach(v => {
-        const rowClass = v.status === 'Completed' ? 'completed' : 'in-progress';
-        table.innerHTML += `
-          <tr class="${rowClass}">
-            <td>${v.sn}</td>
-            <td>${v.department}</td>
-            <td>${v.station}</td>
-            <td>${v.size}</td>
-            <td>${v.status}</td>
-            <td>${v.notes || ''}</td>
-            <td><button onclick='editValve("${v.sn}")'>Edit</button></td>
-          </tr>`;
-      });
+      console.log("Loading valves...");
+      try {
+        const res = await fetch('/valves');
+        const valves = await res.json();
+        console.log("Fetched valves:", valves);
+        const table = document.getElementById('valvesTable');
+        table.innerHTML = '<tr><th>SN</th><th>Dept</th><th>Station</th><th>Size</th><th>Status</th><th>Notes</th><th>Actions</th></tr>';
+        valves.forEach(v => {
+          const rowClass = v.status === 'Completed' ? 'completed' : 'in-progress';
+          table.innerHTML += `
+            <tr class="${rowClass}">
+              <td>${v.sn}</td>
+              <td>${v.department}</td>
+              <td>${v.station}</td>
+              <td>${v.size}</td>
+              <td>${v.status}</td>
+              <td>${v.notes || ''}</td>
+              <td><button onclick='editValve("${v.sn}")'>Edit</button></td>
+            </tr>`;
+        });
+      } catch (e) {
+        console.error("Error loading valves:", e);
+      }
     }
 
     async function addValve() {
@@ -79,14 +95,22 @@
       const url = editSN ? \`/valves/\${editSN}\` : '/valves';
       const method = editSN ? 'PUT' : 'POST';
 
-      await fetch(url, {
-        method: method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(valve)
-      });
+      try {
+        const res = await fetch(url, {
+          method: method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(valve)
+        });
 
-      clearForm();
-      loadValves();
+        if (!res.ok) throw new Error("Failed to save valve");
+
+        console.log("Valve saved successfully.");
+        clearForm();
+        loadValves();
+      } catch (err) {
+        console.error("AddValve error:", err);
+        alert("Failed to add valve.");
+      }
     }
 
     function editValve(sn) {
