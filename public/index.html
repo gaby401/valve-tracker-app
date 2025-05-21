@@ -1,65 +1,7 @@
-=> {
-        const rowClass = v.status === 'Completed' ? 'completed' : 'in-progress';
-        table.innerHTML += `
-          <tr class="${rowClass}">
-            <td>${v.sn}</td>
-            <td>${v.department}</td>
-            <td>${v.station}</td>
-            <td>${v.size}</td>
-            <td>${v.status}</td>
-            <td>${v.notes || ''}</td>
-            <td><button onclick='editValve("${v.sn}")'>Edit</button></td>
-          </tr>`;
-      });
-    }
-
-    async function addValve() {
-      const valve = {
-        sn: document.getElementById('sn').value,
-        department: document.getElementById('department').value,
-        station: document.getElementById('station').value,
-        size: document.getElementById('size').value,
-        status: document.getElementById('status').value,
-        notes: document.getElementById('notes').value,
-      };
-      const url = editSN ? \`/valves/\${editSN}\` : '/valves';
-      const method = editSN ? 'PUT' : 'POST';
-
-      await fetch(url, {
-        method: method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(valve)
-      });
-
-      clearForm();
-      loadValves();
-    }
-
-    function editValve(sn) {
-      fetch(\`/valves/\${sn}\`)
-        .then(res => res.json())
-        .then(v => {
-          editSN = sn;
-          document.getElementById('sn').value = v.sn;
-          document.getElementById('department').value = v.department;
-          document.getElementById('station').value = v.station;
-          document.getElementById('size').value = v.size;
-          document.getElementById('status').value = v.status;
-          document.getElementById('notes').value = v.notes || '';
-        });
-    }
-
-    function clearForm() {
-      editSN = null;
-      document.getElementById('sn').value = '';
-      document.getElementById('department').value = '';
-      document.getElementById('station').value = '';
-      document.getElementById('size').value = 'As-Is';
-      document.getElementById('status').value = 'In Progress';
-      document.getElementById('notes').value = '';
-    }
-
-    window.onload = loadValves;
-  </script>
+<html>
+<head><title>308 Permanent Redirect</title></head>
+<body>
+<center><h1>308 Permanent Redirect</h1></center>
+<hr><center>cloudflare</center>
 </body>
 </html>
