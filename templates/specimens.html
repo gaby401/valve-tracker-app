@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head><title>Specimens</title></head>
+<body>
+<h2>Specimen List</h2>
+<a href="/specimens/add">Add New Specimen</a>
+<table border="1">
+<tr><th>ID</th><th>Name</th><th>Type</th><th>Status</th><th>Upload Result</th></tr>
+{% for specimen in specimens %}
+<tr>
+<td>{{ specimen.id }}</td>
+<td>{{ specimen.name }}</td>
+<td>{{ specimen.type }}</td>
+<td>{{ specimen.status }}</td>
+<td>
+    <form action="/results/upload/{{ specimen.id }}" method="POST" enctype="multipart/form-data">
+        <input type="file" name="result_file" required>
+        <input type="submit" value="Upload">
+    </form>
+</td>
+</tr>
+{% endfor %}
+</table>
+</body>
+</html>
