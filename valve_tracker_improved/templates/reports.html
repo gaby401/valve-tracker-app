@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+
+{% block title %}Reports - Heart Valve Tracker{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2 class="mb-3">Reports</h2>
+        <p class="text-muted">Generate and export reports about heart valve specimens and testing data.</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Generate Report</h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('generate_report') }}" method="POST">
+                    <div class="mb-3">
+                        <label for="report_type" class="form-label">Report Type</label>
+                        <select name="report_type" id="report_type" class="form-select" required>
+                            <option value="status_summary">Status Summary</option>
+                            <option value="type_summary">Valve Type Summary</option>
+                            <option value="detailed">Detailed Specimen Report</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="dateRange" class="form-label">Date Range (Optional)</label>
+                        <div class="input-group" id="dateRange">
+                            <input type="date" name="date_from" class="form-control" placeholder="From">
+                            <span class="input-group-text">to</span>
+                            <input type="date" name="date_to" class="form-control" placeholder="To">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Export Format</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="format" id="formatCSV" value="csv" checked>
+                            <label class="form-check-label" for="formatCSV">
+                                <i class="bi bi-filetype-csv me-1"></i>CSV
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="format" id="formatPDF" value="pdf">
+                            <label class="form-check-label" for="formatPDF">
+                                <i class="bi bi-filetype-pdf me-1"></i>PDF
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-file-earmark-arrow-down me-1"></i>Generate Report
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-8 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Report Descriptions</h5>
+            </div>
+            <div class="card-body">
+                <div class="accordion" id="reportAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingOne">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                Status Summary Report
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#reportAccordion">
+                            <div class="accordion-body">
+                                <p>The <strong>Status Summary Report</strong> provides a count of specimens grouped by their current status (Received, In Testing, Passed, Failed, On Hold).</p>
+                                <p>This report is useful for:</p>
+                                <ul>
+                                    <li>Getting a quick overview of lab testing progress</li>
+                                    <li>Identifying bottlenecks in the testing process</li>
+                                    <li>Tracking success and failure rates</li>
+                                </ul>
+                                <p class="mb-0 text-muted">Recommended format: PDF for presentations, CSV for further analysis</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingTwo">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                Valve Type Summary Report
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#reportAccordion">
+                            <div class="accordion-body">
+                                <p>The <strong>Valve Type Summary Report</strong> provides a count of specimens grouped by their valve type.</p>
+                                <p>This report is useful for:</p>
+                                <ul>
+                                    <li>Tracking the distribution of valve types in your lab</li>
+                                    <li>Identifying which valve types are most commonly tested</li>
+                                    <li>Planning resource allocation based on valve type frequency</li>
+                                </ul>
+                                <p class="mb-0 text-muted">Recommended format: PDF for presentations, CSV for further analysis</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingThree">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                Detailed Specimen Report
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#reportAccordion">
+                            <div class="accordion-body">
+                                <p>The <strong>Detailed Specimen Report</strong> provides comprehensive information about all specimens, including IDs, names, types, statuses, and dates.</p>
+                                <p>This report is useful for:</p>
+                                <ul>
+                                    <li>Comprehensive record-keeping and documentation</li>
+                                    <li>Detailed analysis of specimen data</li>
+                                    <li>Audit purposes and compliance requirements</li>
+                                    <li>Sharing complete specimen information with team members</li>
+                                </ul>
+                                <p class="mb-0 text-muted">Recommended format: CSV for data analysis, PDF for formal documentation</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Data Visualization</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <h5 class="text-center mb-3">Specimen Status Distribution</h5>
+                        <div style="height: 300px;">
+                            <canvas id="statusChart" 
+                                    data-labels="{{ ['Received', 'In Testing', 'Passed', 'Failed', 'On Hold']|tojson }}"
+                                    data-values="{{ [
+                                        specimens_received|default(0),
+                                        specimens_in_testing|default(0),
+                                        specimens_passed|default(0),
+                                        specimens_failed|default(0),
+                                        specimens_on_hold|default(0)
+                                    ]|tojson }}">
+                            </canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <h5 class="text-center mb-3">Valve Types Distribution</h5>
+                        <div style="height: 300px;">
+                            <canvas id="typeChart" 
+                                    data-labels="{{ valve_types|default([])|tojson }}"
+                                    data-values="{{ valve_type_counts|default([])|tojson }}">
+                            </canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Status Chart
+        const statusChartCanvas = document.getElementById('statusChart');
+        if (statusChartCanvas) {
+            try {
+                const statusLabels = JSON.parse(statusChartCanvas.dataset.labels);
+                const statusValues = JSON.parse(statusChartCanvas.dataset.values);
+                
+                new Chart(statusChartCanvas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: statusLabels,
+                        datasets: [{
+                            data: statusValues,
+                            backgroundColor: [
+                                '#6c757d', // Received - secondary
+                                '#ffc107', // In Testing - warning
+                                '#28a745', // Passed - success
+                                '#dc3545', // Failed - danger
+                                '#17a2b8'  // On Hold - info
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right'
+                            }
+                        }
+                    }
+                });
+            } catch (e) {
+                console.error('Error initializing status chart:', e);
+            }
+        }
+        
+        // Type Chart
+        const typeChartCanvas = document.getElementById('typeChart');
+        if (typeChartCanvas) {
+            try {
+                const typeLabels = JSON.parse(typeChartCanvas.dataset.labels);
+                const typeValues = JSON.parse(typeChartCanvas.dataset.values);
+                
+                new Chart(typeChartCanvas, {
+                    type: 'bar',
+                    data: {
+                        labels: typeLabels,
+                        datasets: [{
+                            label: 'Valve Types',
+                            data: typeValues,
+                            backgroundColor: 'rgba(0, 119, 204, 0.7)',
+                            borderColor: 'rgba(0, 119, 204, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (e) {
+                console.error('Error initializing type chart:', e);
+            }
+        }
+    });
+</script>
+{% endblock %}

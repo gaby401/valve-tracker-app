@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Specimen - Heart Valve Tracker{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2 class="mb-3">Add New Specimen</h2>
+        <p class="text-muted">Enter the details for a new heart valve specimen to track in the system.</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 col-md-10 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Specimen Information</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('specimen_add') }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        <label for="valve_id" class="form-label">{{ form.valve_id.label }}</label>
+                        {{ form.valve_id(class="form-control", id="valve_id", placeholder="Enter unique valve identifier") }}
+                        {% for error in form.valve_id.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text">A unique identifier for this heart valve specimen.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="name" class="form-label">{{ form.name.label }}</label>
+                        {{ form.name(class="form-control", id="name", placeholder="Enter specimen name") }}
+                        {% for error in form.name.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="type" class="form-label">{{ form.type.label }}</label>
+                        {{ form.type(class="form-control", id="type", placeholder="Enter valve type") }}
+                        {% for error in form.type.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text">Examples: Mechanical, Bioprosthetic, Transcatheter, etc.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="status" class="form-label">{{ form.status.label }}</label>
+                        {{ form.status(class="form-select", id="status") }}
+                        {% for error in form.status.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">{{ form.notes.label }}</label>
+                        {{ form.notes(class="form-control", id="notes", rows="4", placeholder="Enter any additional notes about this specimen") }}
+                        {% for error in form.notes.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('specimen_list') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Back to List
+                        </a>
+                        {{ form.submit(class="btn btn-success") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

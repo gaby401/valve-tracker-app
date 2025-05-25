@@ -1,0 +1,11 @@
+flask
+werkzeug
+flask-login
+flask-wtf
+email-validator
+flask-sqlalchemy
+flask-migrate
+python-dotenv
+pillow
+reportlab
+pandas

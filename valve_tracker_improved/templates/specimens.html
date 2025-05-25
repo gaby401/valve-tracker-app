@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block title %}Specimens - Heart Valve Tracker{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2 class="mb-3">Specimen List</h2>
+        <p class="text-muted">Manage and track all heart valve specimens in the laboratory.</p>
+    </div>
+</div>
+
+<!-- Search and Filter Form -->
+<div class="search-form mb-4">
+    <form method="GET" action="{{ url_for('specimen_list') }}" class="row g-3">
+        <div class="col-md-4">
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                {{ search_form.search(class="form-control", placeholder="Search by ID, name or type...") }}
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-funnel"></i></span>
+                {{ search_form.status(class="form-select") }}
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-tag"></i></span>
+                {{ search_form.type(class="form-select") }}
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary">Filter</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Specimens Table -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Specimens</h5>
+        <a href="{{ url_for('specimen_add') }}" class="btn btn-success">
+            <i class="bi bi-plus-circle me-1"></i>Add New Specimen
+        </a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th data-sort="valve_id" class="sortable">
+                            Valve ID
+                            {% if sort_by == 'valve_id' %}
+                                <i class="bi bi-arrow-{{ 'down' if sort_dir == 'desc' else 'up' }}"></i>
+                            {% endif %}
+                        </th>
+                        <th data-sort="name" class="sortable">
+                            Name
+                            {% if sort_by == 'name' %}
+                                <i class="bi bi-arrow-{{ 'down' if sort_dir == 'desc' else 'up' }}"></i>
+                            {% endif %}
+                        </th>
+                        <th data-sort="type" class="sortable">
+                            Type
+                            {% if sort_by == 'type' %}
+                                <i class="bi bi-arrow-{{ 'down' if sort_dir == 'desc' else 'up' }}"></i>
+                            {% endif %}
+                        </th>
+                        <th data-sort="status" class="sortable">
+                            Status
+                            {% if sort_by == 'status' %}
+                                <i class="bi bi-arrow-{{ 'down' if sort_dir == 'desc' else 'up' }}"></i>
+                            {% endif %}
+                        </th>
+                        <th data-sort="created_at" class="sortable">
+                            Created
+                            {% if sort_by == 'created_at' %}
+                                <i class="bi bi-arrow-{{ 'down' if sort_dir == 'desc' else 'up' }}"></i>
+                            {% endif %}
+                        </th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for specimen in specimens %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('specimen_detail', id=specimen.id) }}">{{ specimen.valve_id }}</a>
+                        </td>
+                        <td>{{ specimen.name }}</td>
+                        <td>{{ specimen.type }}</td>
+                        <td>
+                            <span class="badge bg-{{ specimen.get_status_color() }}">
+                                <span class="status-indicator status-{{ specimen.status.lower().replace(' ', '-') }}"></span>
+                                {{ specimen.status }}
+                            </span>
+                        </td>
+                        <td>{{ specimen.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{{ url_for('specimen_detail', id=specimen.id) }}" class="btn btn-outline-primary" data-bs-toggle="tooltip" title="View Details">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{{ url_for('specimen_edit', id=specimen.id) }}" class="btn btn-outline-secondary" data-bs-toggle="tooltip" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                {% if current_user.is_admin() %}
+                                <button type="button" class="btn btn-outline-danger btn-delete" data-bs-toggle="modal" data-bs-target="#deleteModal{{ specimen.id }}" data-bs-toggle="tooltip" title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Delete Modal -->
+                            <div class="modal fade" id="deleteModal{{ specimen.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ specimen.id }}" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="deleteModalLabel{{ specimen.id }}">Confirm Deletion</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            Are you sure you want to delete specimen <strong>{{ specimen.valve_id }}</strong>? This action cannot be undone and will remove all associated test results.
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <form action="{{ url_for('specimen_delete', id=specimen.id) }}" method="POST">
+                                                <button type="submit" class="btn btn-danger">Delete</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4">
+                            <div class="text-muted">
+                                <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                No specimens found matching your criteria
+                            </div>
+                            {% if search_form.search.data or search_form.status.data != 'All' or search_form.type.data != 'All' %}
+                            <a href="{{ url_for('specimen_list') }}" class="btn btn-outline-primary mt-2">Clear Filters</a>
+                            {% else %}
+                            <a href="{{ url_for('specimen_add') }}" class="btn btn-primary mt-2">Add Your First Specimen</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize tooltips for action buttons
+    document.addEventListener('DOMContentLoaded', function() {
+        // Make table headers clickable for sorting
+        document.querySelectorAll('th.sortable').forEach(header => {
+            header.style.cursor = 'pointer';
+            header.addEventListener('click', function() {
+                const sortField = this.dataset.sort;
+                const currentSortDir = '{{ sort_dir }}';
+                const newSortDir = sortField === '{{ sort_by }}' && currentSortDir === 'asc' ? 'desc' : 'asc';
+                
+                // Update URL with sort parameters
+                const url = new URL(window.location);
+                url.searchParams.set('sort_by', sortField);
+                url.searchParams.set('sort_dir', newSortDir);
+                window.location = url.toString();
+            });
+        });
+    });
+</script>
+{% endblock %}

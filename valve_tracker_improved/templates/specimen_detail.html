@@ -1,0 +1,386 @@
+{% extends 'base.html' %}
+
+{% block title %}Specimen Details - Heart Valve Tracker{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2 class="mb-0">Specimen Details</h2>
+            <div>
+                <a href="{{ url_for('specimen_list') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>Back to List
+                </a>
+                <a href="{{ url_for('specimen_edit', id=specimen.id) }}" class="btn btn-primary ms-2">
+                    <i class="bi bi-pencil me-1"></i>Edit
+                </a>
+                {% if current_user.is_admin() %}
+                <button type="button" class="btn btn-danger ms-2 btn-delete" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                    <i class="bi bi-trash me-1"></i>Delete
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Specimen Information -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Specimen Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3 d-flex justify-content-between align-items-center">
+                    <h3>{{ specimen.valve_id }}</h3>
+                    <span class="badge bg-{{ specimen.get_status_color() }} fs-6">{{ specimen.status }}</span>
+                </div>
+                
+                <table class="table">
+                    <tbody>
+                        <tr>
+                            <th style="width: 30%">Name:</th>
+                            <td>{{ specimen.name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Type:</th>
+                            <td>{{ specimen.type }}</td>
+                        </tr>
+                        <tr>
+                            <th>Created:</th>
+                            <td>{{ specimen.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        </tr>
+                        <tr>
+                            <th>Last Updated:</th>
+                            <td>{{ specimen.updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        </tr>
+                        <tr>
+                            <th>Notes:</th>
+                            <td>{{ specimen.notes or 'No notes available' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Assigned Tests -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Assigned Tests</h5>
+                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addTestModal">
+                    <i class="bi bi-plus-circle me-1"></i>Assign Test
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Test Type</th>
+                                <th>Status</th>
+                                <th>Assigned</th>
+                                <th>Due Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for test in tests %}
+                            <tr>
+                                <td>{{ test.test_type }}</td>
+                                <td>
+                                    <span class="badge bg-{% if test.status == 'Pending' %}secondary{% elif test.status == 'In Progress' %}warning{% elif test.status == 'Completed' %}success{% else %}danger{% endif %}">
+                                        {{ test.status }}
+                                    </span>
+                                </td>
+                                <td>{{ test.assigned_date.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ test.due_date.strftime('%Y-%m-%d') if test.due_date else 'Not set' }}</td>
+                                <td>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Update
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <form action="{{ url_for('update_test_status', id=test.id) }}" method="POST">
+                                                    <input type="hidden" name="status" value="Pending">
+                                                    <button type="submit" class="dropdown-item">Mark as Pending</button>
+                                                </form>
+                                            </li>
+                                            <li>
+                                                <form action="{{ url_for('update_test_status', id=test.id) }}" method="POST">
+                                                    <input type="hidden" name="status" value="In Progress">
+                                                    <button type="submit" class="dropdown-item">Mark as In Progress</button>
+                                                </form>
+                                            </li>
+                                            <li>
+                                                <form action="{{ url_for('update_test_status', id=test.id) }}" method="POST">
+                                                    <input type="hidden" name="status" value="Completed">
+                                                    <button type="submit" class="dropdown-item">Mark as Completed</button>
+                                                </form>
+                                            </li>
+                                            <li>
+                                                <form action="{{ url_for('update_test_status', id=test.id) }}" method="POST">
+                                                    <input type="hidden" name="status" value="Cancelled">
+                                                    <button type="submit" class="dropdown-item">Mark as Cancelled</button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4">
+                                    <div class="text-muted">
+                                        <i class="bi bi-clipboard-x fs-1 d-block mb-2"></i>
+                                        No tests assigned to this specimen
+                                    </div>
+                                    <button type="button" class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#addTestModal">
+                                        Assign First Test
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Test Results -->
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Test Results</h5>
+                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#uploadResultModal">
+                    <i class="bi bi-upload me-1"></i>Upload Result
+                </button>
+            </div>
+            <div class="card-body">
+                {% if results %}
+                <div class="row">
+                    {% for result in results %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">{{ result.file_type }}</h6>
+                                <div class="text-muted small">{{ result.uploaded_at.strftime('%Y-%m-%d') }}</div>
+                            </div>
+                            <div class="card-body">
+                                {% if result.file_type == 'Image' %}
+                                <div class="text-center mb-3">
+                                    <img src="{{ url_for('uploaded_file', filename=result.file) }}" class="img-fluid file-preview-image" style="max-height: 150px;" alt="Result image">
+                                </div>
+                                {% elif result.file_type == 'PDF' %}
+                                <div class="text-center mb-3">
+                                    <i class="bi bi-file-earmark-pdf fs-1 text-danger"></i>
+                                </div>
+                                {% else %}
+                                <div class="text-center mb-3">
+                                    <i class="bi bi-file-earmark-text fs-1 text-primary"></i>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <p class="mb-1">
+                                            <strong>Uploaded by:</strong> 
+                                            {{ result.uploaded_by.username if result.uploaded_by else 'Unknown' }}
+                                        </p>
+                                        {% if result.notes %}
+                                        <p class="mb-0 small text-muted">{{ result.notes }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <div class="d-flex justify-content-between">
+                                    <button type="button" class="btn btn-sm btn-outline-primary btn-preview" 
+                                            data-file-url="{{ url_for('uploaded_file', filename=result.file) }}"
+                                            data-file-type="{{ result.file_type }}">
+                                        <i class="bi bi-eye me-1"></i>Preview
+                                    </button>
+                                    <div>
+                                        <a href="{{ url_for('uploaded_file', filename=result.file) }}" class="btn btn-sm btn-outline-secondary" download>
+                                            <i class="bi bi-download me-1"></i>Download
+                                        </a>
+                                        <form action="{{ url_for('delete_result', id=result.id) }}" method="POST" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger btn-delete">
+                                                <i class="bi bi-trash me-1"></i>Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-file-earmark-x fs-1 text-muted mb-3"></i>
+                    <h5>No Results Uploaded</h5>
+                    <p class="text-muted">Upload test results to track and analyze this specimen's performance.</p>
+                    <button type="button" class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#uploadResultModal">
+                        Upload First Result
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete specimen <strong>{{ specimen.valve_id }}</strong>? This action cannot be undone and will remove all associated test results.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('specimen_delete', id=specimen.id) }}" method="POST">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Test Modal -->
+<div class="modal fade" id="addTestModal" tabindex="-1" aria-labelledby="addTestModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTestModalLabel">Assign Test</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('add_test', id=specimen.id) }}" method="POST">
+                <div class="modal-body">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        <label for="test_type" class="form-label">{{ form.test_type.label }}</label>
+                        {{ form.test_type(class="form-select", id="test_type") }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">{{ form.description.label }}</label>
+                        {{ form.description(class="form-control", id="description", rows="3") }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="due_date" class="form-label">{{ form.due_date.label }}</label>
+                        {{ form.due_date(class="form-control", id="due_date", type="date") }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Result Modal -->
+<div class="modal fade" id="uploadResultModal" tabindex="-1" aria-labelledby="uploadResultModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadResultModalLabel">Upload Test Result</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('upload_result', specimen_id=specimen.id) }}" method="POST" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="test_id" class="form-label">Associated Test (Optional)</label>
+                        <select name="test_id" id="test_id" class="form-select">
+                            <option value="">-- Select Test --</option>
+                            {% for test in tests %}
+                            <option value="{{ test.id }}">{{ test.test_type }} ({{ test.status }})</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Link this result to a specific test, or leave blank if it's a general result.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="result_file" class="form-label">Result File</label>
+                        <input type="file" name="result_file" id="result_file" class="form-control custom-file-input" required>
+                        <div class="form-text">Allowed file types: PDF, images (PNG, JPG, GIF), data files (CSV, XLSX)</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea name="notes" id="notes" class="form-control" rows="3" placeholder="Add any notes about this result"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Upload</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize file input preview
+    document.addEventListener('DOMContentLoaded', function() {
+        const fileInput = document.getElementById('result_file');
+        if (fileInput) {
+            fileInput.addEventListener('change', function() {
+                const fileName = this.files[0].name;
+                const fileSize = (this.files[0].size / 1024).toFixed(2);
+                const fileInfo = `${fileName} (${fileSize} KB)`;
+                this.nextElementSibling.textContent = fileInfo;
+            });
+        }
+        
+        // Set up preview button functionality
+        const previewButtons = document.querySelectorAll('.btn-preview');
+        previewButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const fileUrl = this.getAttribute('data-file-url');
+                const fileType = this.getAttribute('data-file-type');
+                const previewModal = document.getElementById('previewModal');
+                const previewContent = document.getElementById('previewContent');
+                const downloadLink = document.getElementById('downloadFile');
+                
+                // Set download link
+                downloadLink.href = fileUrl;
+                
+                // Clear previous content
+                previewContent.innerHTML = '';
+                
+                // Add appropriate preview based on file type
+                if (fileType === 'Image') {
+                    const img = document.createElement('img');
+                    img.src = fileUrl;
+                    img.className = 'img-fluid';
+                    previewContent.appendChild(img);
+                } else if (fileType === 'PDF') {
+                    const iframe = document.createElement('iframe');
+                    iframe.src = fileUrl;
+                    iframe.style.width = '100%';
+                    iframe.style.height = '500px';
+                    iframe.frameBorder = '0';
+                    previewContent.appendChild(iframe);
+                } else {
+                    previewContent.innerHTML = '<div class="alert alert-info">Preview not available for this file type. Please download the file to view its contents.</div>';
+                }
+                
+                // Show modal
+                const modal = new bootstrap.Modal(previewModal);
+                modal.show();
+            });
+        });
+    });
+</script>
+{% endblock %}
